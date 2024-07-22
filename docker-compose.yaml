@@ -1,0 +1,35 @@
+services:
+    socket:
+        container_name: socket-server
+        build:
+            context: .
+            dockerfile: DockerFile
+        volumes:
+            - ./src:/api/src
+        restart: always
+        ports:
+            - ${SERVER_PORT}:${SERVER_PORT}
+        depends_on:
+            - redis
+        external_links:
+            - redis
+        networks:
+            - socket-network
+
+    redis:
+        image: redis:latest
+        container_name: redis
+        ports:
+            - ${REDIS_PORT}:${REDIS_PORT}
+        restart: always
+        networks:
+            - socket-network
+        volumes:
+            - redis:/data
+
+volumes:
+    redis:
+
+networks:
+    socket-network:
+        driver: bridge
