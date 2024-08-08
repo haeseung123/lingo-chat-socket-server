@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { Redis } from 'ioredis';
-import { redisStorageService } from './redis-storage.service';
+import { RedisStorageService } from './redis-storage.service';
 import redisConfiguration from '../configs/redis.configuration';
 
 @Module({
@@ -22,8 +22,8 @@ import redisConfiguration from '../configs/redis.configuration';
 			},
 			inject: [ConfigService],
 		},
-		redisStorageService,
+		RedisStorageService,
 	],
-	exports: ['REDIS_CLIENT', redisStorageService],
+	exports: ['REDIS_CLIENT', RedisStorageService],
 })
 export class RedisModule {}

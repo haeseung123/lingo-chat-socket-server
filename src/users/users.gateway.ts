@@ -6,8 +6,7 @@ import {
 	WebSocketServer,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
-import { CacheService } from 'src/cache/cache.service';
-import { redisStorageService } from 'src/global/redis/redis-storage.service';
+import { RedisStorageService } from 'src/global/redis/redis-storage.service';
 
 @WebSocketGateway({
 	cors: {
@@ -18,11 +17,11 @@ export class UsersGateway implements OnGatewayConnection, OnGatewayDisconnect {
 	@WebSocketServer()
 	server: Server;
 
-	constructor(private readonly redisStorageService: redisStorageService) {}
+	constructor(private readonly redisStorageService: RedisStorageService) {}
 
 	async postAccessToken(token: string) {
 		try {
-			const response = await fetch('http://192.168.64.1:3000/auth/verify-token', {
+			const response = await fetch('http://172.30.1.72:3000/auth/verify-token', {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json',
