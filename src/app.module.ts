@@ -7,7 +7,7 @@ import redisConfiguration from './global/configs/redis.configuration';
 import { validationSchema } from './global/configs/validation.schema';
 import { CacheModule } from './cache/cache.module';
 import { RedisModule } from './global/redis/redis.module';
-import { redisStorageService } from './global/redis/redis-storage.service';
+import { CrossWebsocketModule } from './cross-websocket/cross-websocket.module';
 
 @Module({
 	imports: [
@@ -20,6 +20,7 @@ import { redisStorageService } from './global/redis/redis-storage.service';
 		}),
 		UsersModule,
 		RedisModule,
+		CrossWebsocketModule,
 	],
 	controllers: [AppController],
 	providers: [AppService],
