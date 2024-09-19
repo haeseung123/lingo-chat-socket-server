@@ -5,5 +5,6 @@ import { RedisModule } from 'src/global/redis/redis.module';
 @Module({
 	imports: [RedisModule],
 	providers: [UsersGateway],
+	exports: [UsersGateway],
 })
 export class UsersModule {}
