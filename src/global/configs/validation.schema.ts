@@ -7,5 +7,8 @@ export const validationSchema = Joi.object({
 	// REDIS
 	REDIS_HOST: Joi.string().required(),
 	REDIS_PORT: Joi.number().required(),
-	REDIS_INSIGHT_PORT: Joi.number().required(),
+	REDIS_DB: Joi.number().required(),
+
+	// RINGO_CHAT_API
+	API_SERVER_URL: Joi.string().required(),
 });

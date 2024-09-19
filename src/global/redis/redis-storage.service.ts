@@ -16,4 +16,8 @@ export class RedisStorageService {
 	async del(key: string) {
 		await this.redisClient.del(key);
 	}
+
+	async queue(key: string, value: string) {
+		return await this.redisClient.rpush(key, value);
+	}
 }

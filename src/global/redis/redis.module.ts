@@ -18,6 +18,7 @@ import redisConfiguration from '../configs/redis.configuration';
 				return new Redis({
 					host: configService.getOrThrow('REDIS_HOST'),
 					port: configService.getOrThrow('REDIS_PORT'),
+					db: configService.getOrThrow('REDIS_DB'),
 				});
 			},
 			inject: [ConfigService],
