@@ -10,7 +10,7 @@ import { Server, Socket } from 'socket.io';
 import { UsersGateway } from 'src/users/users.gateway';
 
 @WebSocketGateway({
-	namespace: '/api-ai',
+	namespace: '/socket/api-ai',
 	cors: {
 		origin: '*',
 	},

@@ -10,8 +10,9 @@ import { Server, Socket } from 'socket.io';
 import { RedisStorageService } from 'src/global/redis/redis-storage.service';
 
 @WebSocketGateway({
+	namespace: '/socket/users',
 	cors: {
-		origin: '*', // 실제 배포 시에는 보안을 위해 특정 도메인으로 제한
+		origin: '*', // 정확히 클라이언트 도메인을 설정
 	},
 })
 export class UsersGateway implements OnGatewayConnection, OnGatewayDisconnect {
@@ -55,6 +56,12 @@ export class UsersGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
 		const userData = await this.postAccessToken(token);
 
+		if (!userData?.result?.provideId) {
+			client.emit('error', 'Invalid or expired token');
+			client.disconnect();
+			return;
+		}
+
 		client.data.user = userData;
 
 		const userId = userData.result.provideId;
@@ -62,13 +69,15 @@ export class UsersGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
 		const isUserSocketInRedis = await this.redisStorageService.get(`user:${userId}:socketId`);
 		if (isUserSocketInRedis) {
-			const existingSocket = this.server.sockets.sockets.get(isUserSocketInRedis);
+			const sockets = await this.server.fetchSockets();
+
+			const existingSocket = sockets.find((socket) => socket.id === isUserSocketInRedis);
+
 			if (existingSocket) {
 				existingSocket.emit('error', '중복 로그인 감지로 인해 연결이 종료됩니다.');
 				existingSocket.disconnect();
-
-				await this.redisStorageService.del(`user:${userId}:socketId`);
 			}
+			await this.redisStorageService.del(`user:${userId}:socketId`);
 		}
 
 		await this.redisStorageService.set(`user:${userId}:socketId`, socketId);
@@ -78,8 +87,11 @@ export class UsersGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
 	async handleDisconnect(client: Socket) {
 		const userId = client.data.user.result.provideId;
-		await this.redisStorageService.del(`user:${userId}:socketId`);
-		console.log(`User disconnected: ${client.id}`);
+
+		if (userId) {
+			await this.redisStorageService.del(`user:${userId}:socketId`);
+			console.log(`User disconnected: ${client.id}`);
+		}
 	}
 
 	@SubscribeMessage('send_message')
