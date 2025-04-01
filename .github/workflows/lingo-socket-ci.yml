@@ -1,0 +1,69 @@
+name: Deploy lingo socket
+
+on:
+    push:
+        tags:
+            - 'v*'
+
+jobs:
+    build:
+        runs-on: ubuntu-latest # 최신 우분투 환경에서 실행
+
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v2
+
+            - name: Create .development.env file
+              run: |
+                  echo "SERVER_PORT=$SERVER_PORT" >> .development.env
+                  echo "REDIS_HOST=$REDIS_HOST" >> .development.env
+                  echo "REDIS_PORT=$REDIS_PORT" >> .development.env
+                  echo "REDIS_DB=$REDIS_DB" >> .development.env
+                  echo "API_SERVER_URL=$API_SERVER_URL" >> .development.env
+              env:
+                  SERVER_PORT: 3080
+                  REDIS_HOST: ${{ secrets.REDIS_HOST}}
+                  REDIS_PORT: ${{ secrets.REDIS_PORT}}
+                  REDIS_DB: ${{ secrets.REDIS_DB}}
+                  API_SERVER_URL: ${{ secrets.API_SERVER_URL}}
+
+            - name: Install Docker Compose
+              run: |
+                  sudo curl -L "https://github.com/docker/compose/releases/download/$(curl -s https://api.github.com/repos/docker/compose/releases/latest | grep tag_name | cut -d '"' -f 4)/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+                  sudo chmod +x /usr/local/bin/docker-compose
+
+            - name: Extract Tag Name
+              id: tag
+              run: echo "TAG=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
+
+            - name: Docker build & push
+              run: |
+                  docker login -u ${{ secrets.DOCKER_HUB_USERNAME }} -p ${{ secrets.DOCKER_HUB_TOKEN }}
+                  docker-compose --env-file .development.env -f docker-compose.amd64.yaml build
+                  docker tag socket-server-socket.amd64 ${{ secrets.DOCKER_HUB_USERNAME }}/socket-server.amd64:${{ env.TAG }}
+                  docker push ${{ secrets.DOCKER_HUB_USERNAME }}/socket-server.amd64:${{ env.TAG }}
+
+            - name: Install yq
+              run: |
+                  curl -L https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -o /usr/local/bin/yq
+                  chmod +x /usr/local/bin/yq
+
+            - name: Checkout Helm Repository
+              uses: actions/checkout@v2
+              with:
+                  repository: haeseung123/lingo-chat-helm
+                  token: ${{ secrets.GIT_TOKEN }}
+                  path: helm-repo
+
+            - name: Update Helm values.yaml with new image tag
+              run: |
+                  export TAG=${TAG}
+                  yq eval '.socket.image.tag = env(TAG)' -i helm-repo/values.yaml
+
+            - name: Commit and Push updated values.yaml
+              run: |
+                  git -C helm-repo config user.email "showui96@gmail.com"
+                  git -C helm-repo config user.name "haeseung123"
+                  git -C helm-repo add values.yaml
+                  git -C helm-repo commit -m "Update socket image tag to ${TAG}"
+                  git -C helm-repo push
