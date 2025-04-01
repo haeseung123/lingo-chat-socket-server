@@ -40,7 +40,7 @@ jobs:
               run: |
                   docker login -u ${{ secrets.DOCKER_HUB_USERNAME }} -p ${{ secrets.DOCKER_HUB_TOKEN }}
                   docker-compose --env-file .development.env -f docker-compose.amd64.yaml build
-                  docker tag socket-server-socket.amd64 ${{ secrets.DOCKER_HUB_USERNAME }}/socket-server.amd64:${{ env.TAG }}
+                  docker tag lingo-chat-socket-server-socket.amd64 ${{ secrets.DOCKER_HUB_USERNAME }}/socket-server.amd64:${{ env.TAG }}
                   docker push ${{ secrets.DOCKER_HUB_USERNAME }}/socket-server.amd64:${{ env.TAG }}
 
             - name: Install yq
