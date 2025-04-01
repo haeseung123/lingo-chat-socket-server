@@ -1,0 +1,12 @@
+services:
+    socket.amd64:
+        container_name: socket-server.amd64
+        build:
+            context: .
+            dockerfile: DockerFile
+        volumes:
+            - ./src:/api/src
+        restart: always
+        ports:
+            - ${SERVER_PORT}:${SERVER_PORT}
+        platform: linux/amd64
